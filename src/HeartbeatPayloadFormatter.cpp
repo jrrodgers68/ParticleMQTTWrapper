@@ -33,33 +33,33 @@ Buffer* HeartbeatPayloadFormatter::writeMessage()
     return buf;
 }
 
-String HeartbeatPayloadFormatter::getUpTime()
+Buffer* HeartbeatPayloadFormatter::getUpTime()
 {
-    // string as:  W days, X hours, Y minutes, Z seconds
-    const int ms_per_day = 86400 * 1000;
-    const int ms_per_hour = 3600 * 1000;
-    const int ms_per_min = 60 * 1000;
+    Buffer* buf = BufferMgr::instance()->allocate(64);
+    if(buf)
+    {
+        // string as:  W days, X hours, Y minutes, Z seconds
+        const int ms_per_day = 86400 * 1000;
+        const int ms_per_hour = 3600 * 1000;
+        const int ms_per_min = 60 * 1000;
 
-    int up_millis = millis();
-    int days = up_millis / ms_per_day;
-    up_millis -= (days * ms_per_day);
+        int up_millis = millis();
+        int days = up_millis / ms_per_day;
+        up_millis -= (days * ms_per_day);
 
-    int hours = up_millis / ms_per_hour;
-    up_millis -= (hours * ms_per_hour);
+        int hours = up_millis / ms_per_hour;
+        up_millis -= (hours * ms_per_hour);
 
-    int minutes = up_millis / ms_per_min;
-    up_millis -= (minutes * ms_per_min);
+        int minutes = up_millis / ms_per_min;
+        up_millis -= (minutes * ms_per_min);
 
-    int seconds = up_millis / 1000;
-    up_millis -= (seconds * 1000);
+        int seconds = up_millis / 1000;
+        up_millis -= (seconds * 1000);
 
-    String sDays(days);
-    String sHours(hours);
-    String sMins(minutes);
-    String sSecs(seconds);
+        snprintf(buf->buffer(), buf->maxSize(), "%d days, %d hours, %d minutes, %d seconds", days, hours, minutes, seconds);
+    }
 
-    String result = sDays + " days, " + sHours + " hours, " + sMins + " minutes, " + sSecs + " seconds";
-    return result;
+    return buf;
 }
 
 bool HeartbeatPayloadFormatter::formatMessage(Buffer* p)
@@ -72,15 +72,19 @@ bool HeartbeatPayloadFormatter::formatMessage(Buffer* p)
     message["timestamp"] = ts.c_str();
 
     IPAddress ip = WiFi.localIP();
-    String sip = ip.toString();
-    message["ipaddress"] = sip.c_str();
+    char sip[16];
+    snprintf(sip, 16, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+    message["ipaddress"] = sip;
 
     uint32_t freeMemory = System.freeMemory();
     message["free_memory"] = freeMemory;
 
-    String upTime = getUpTime();
-    message["up_time"] = upTime.c_str();
+    Buffer* upTime = getUpTime();
+    message["up_time"] = upTime->buffer();
 
     p->size() = root.printTo(p->buffer(), p->maxSize());
+
+    BufferMgr::instance()->deallocate(upTime);
+
     return p->size() > 0;
 }

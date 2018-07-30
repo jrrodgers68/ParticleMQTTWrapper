@@ -15,7 +15,7 @@ public:
     Buffer* writeMessage();
 
 private:
-    String getUpTime();
+    Buffer* getUpTime();
     bool formatMessage(Buffer*);
 
 };
