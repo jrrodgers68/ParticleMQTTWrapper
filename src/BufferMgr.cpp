@@ -9,7 +9,7 @@ BufferMgr* BufferMgr::_instance = NULL;
 BufferMgr::BufferMgr()
 {
     // prefill with some buffers
-    for(int i=0; i < 6; ++i)
+    for(int i=0; i < 8; ++i)
     {
         Buffer* p = new Buffer(64);
         _freeList.push_back(p);

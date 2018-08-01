@@ -19,7 +19,7 @@ Buffer* HeartbeatPayloadFormatter::writeMessage()
     // get buffer from BufferMgr
     // format message as json
     // write json object to buffer
-    Buffer* buf = BufferMgr::instance()->allocate(64);
+    Buffer* buf = BufferMgr::instance()->allocate(256);
     if(buf)
     {
         if(!formatMessage(buf))
